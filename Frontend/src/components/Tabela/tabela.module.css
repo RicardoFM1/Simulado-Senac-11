@@ -1,0 +1,12 @@
+.tabela{
+   border: 2px solid  rgb(182, 119, 60) !important ; 
+   border-radius: 10px;
+   border-spacing: 0;
+   border-collapse: separate;
+   overflow: hidden;
+}
+
+.tabelaHeader {
+    background-color:  rgb(182, 119, 60) !important;
+    color: white !important;
+}

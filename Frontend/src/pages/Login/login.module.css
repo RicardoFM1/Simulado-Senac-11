@@ -1,0 +1,47 @@
+.divLogin {
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    overflow: hidden;
+}
+
+.divFoto {
+    flex: 0 0 60%;
+    width: 100%;
+    overflow: hidden;
+}
+
+.foto {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.divForm {
+    flex: 1;
+    align-items: center;
+    align-self: center;
+    align-content: center;
+    display: flex;
+    flex-direction: column;
+    margin: 40px;
+
+}
+
+.logo {
+    width: 75px;
+    margin-bottom: 15px;
+}
+
+.btnSubmit {
+    background-color: rgb(182, 119, 60) !important;
+    border: none !important;
+}
+
+@media (max-width: 1024px) {
+    .divFoto {
+        display: none;
+    }
+}

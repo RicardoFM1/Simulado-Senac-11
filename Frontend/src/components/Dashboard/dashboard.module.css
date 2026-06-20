@@ -1,0 +1,40 @@
+.btnAdicionar {
+    margin: 45px;
+    background-color: rgb(182, 119, 60) !important;
+    border: none !important;
+}
+
+.btnFiltro{
+    background-color: rgb(182, 119, 60) !important;
+    border: none !important;
+}
+
+.btnFiltro:focus{
+    background-color: rgba(182, 119, 60, 0.838) !important;
+    border: none !important;
+}
+
+.divCards{
+    display: flex;
+    justify-content: space-between;
+    margin: 45px;
+    height: 150px;
+    text-align: center;
+    align-items: center;
+    
+}
+
+
+
+.divCards > div{
+    width: 20%;
+    height: 150px;
+    border: unset !important;
+    background-color: rgba(245, 245, 220, 0.619) !important;
+}
+
+.cardHeader{
+   background-color: rgb(182, 119, 60) !important;
+   color: white !important;
+}
+

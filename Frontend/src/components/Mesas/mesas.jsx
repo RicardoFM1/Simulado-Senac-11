@@ -52,7 +52,7 @@ const Mesas = () => {
 
     useEffect(() => {
         setMesasFiltradas(
-            mesas.filter((m) => String(m.id_mesa).includes(search))
+            mesas?.filter((m) => String(m.id_mesa).includes(search))
         )
     }, [search])
 
@@ -133,7 +133,7 @@ const Mesas = () => {
                 <div className="m-5">
 
                     <h1>Listagem de mesas</h1>
-                    <p>{mesasFiltradas.length ?? 0} Mesas listadas</p>
+                    <p>{mesasFiltradas?.length ?? 0} Mesas listadas</p>
                     <p>Clique na linha da tabela para gerenciar as mesas</p>
                 </div>
 

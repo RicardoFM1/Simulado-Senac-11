@@ -7,6 +7,8 @@ import Tabela from "../Tabela/tabela";
 import { IoIosArrowForward } from "react-icons/io";
 import { toast } from "react-toastify";
 import UsuarioModal from "../Modais/Usuarios/usuarioModal";
+import {jsPDF} from "jspdf"
+import {autoTable} from "jspdf-autotable"
 
 const Dashboard = () => {
     const [usuarios, setUsuarios] = useState([])
@@ -16,6 +18,7 @@ const Dashboard = () => {
     const [usuarioSelecionado, setUsuarioSelecionado] = useState([])
     const [search, setSearch] = useState("")
     const [show, setShow] = useState()
+    const [convidados, setConvidados] = useState([])
 
 
     const buscarUsuarios = async () => {
@@ -32,6 +35,22 @@ const Dashboard = () => {
             console.log(err)
         }
     }
+
+    const buscarConvidados = async () => {
+        try {
+
+            const res = await Api.get('/convidado')
+
+            if (res.status === 200) {
+                setConvidados(res.data.dados)
+                
+            }
+
+        } catch (err) {
+            console.log(err)
+        }
+    }
+    
 
     const buscarDashboard = async () => {
         try {
@@ -67,6 +86,7 @@ const Dashboard = () => {
         buscarDashboard()
         buscarUsuarios()
         buscarRetrieve()
+        buscarConvidados()
     }, [])
 
     const handleNovo = () => {
@@ -164,6 +184,51 @@ const Dashboard = () => {
         }
     }
 
+    const exportarPDF = () => {
+        const doc = new jsPDF();
+
+        doc.text('Relatório:', 10, 10);
+        doc.text('Relatório do dashboard:', 10, 18);
+
+        autoTable(doc, {
+            startY: 26,
+            theme: 'grid',
+            head: [['Total', 'Confirmados', 'Pendentes', 'Cancelados']],
+            body: [[
+                dashboard?.total ?? 0,
+                dashboard?.confirmados ?? 0,
+                dashboard?.pendentes ?? 0,
+                dashboard?.cancelados ?? 0,
+            ]],
+        });
+
+        doc.text('Relatório de convidados', 10, doc.lastAutoTable.finalY + 10);
+
+        autoTable(doc, {
+            startY: doc.lastAutoTable.finalY + 20,
+            theme: 'grid',
+            head: [['Nome', 'Sobrenome', 'Email', 'Cpf', 'Telefone', 'Categoria', 'Confirmação', 'Nº da mesa']],
+            body: convidados.length > 0
+                ? convidados.map((c) => [
+                    c.nome ?? '-',
+                    c.sobrenome ?? '-',
+                    c.email ?? '-',
+                    c.cpf ?? '-',
+                    c.telefone ?? '-',
+                    c.categoria ?? '-',
+                    c.confirmacao ?? '-',
+                    c.mesa_idmesa ?? '-',
+                ])
+                : [['Nenhum convidado encontrado']],
+        });
+
+        doc.save('relatorio-dashboard.pdf');
+    }
+        
+    
+
+
+
     return (
         <div>
 
@@ -204,6 +269,7 @@ const Dashboard = () => {
                     </Card.Body>
                 </Card>
             </div>
+            <Button onClick={exportarPDF} className={style.btnExportar}>Exportar para pdf</Button>
                 {retrieve?.cargo_usuario === 'administrador' ? (
             <div>
 

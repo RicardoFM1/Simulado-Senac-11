@@ -170,7 +170,7 @@ const ConvidadoModal = ({ dados, mesas, show, handleClose, submit, handleDeletar
                                 <option value="">Selecione uma opção</option>
                                 
 
-                                    {mesas.map(mesa => (
+                                    {mesas?.map(mesa => (
                                         <option value={mesa?.id_mesa}>{mesa?.id_mesa}</option>
                                     ))}
                                 

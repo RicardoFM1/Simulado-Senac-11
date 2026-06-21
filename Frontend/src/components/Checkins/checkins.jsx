@@ -60,7 +60,7 @@ const Checkins = () => {
 
     useEffect(() => {
         setConvidadosFiltrados(
-            convidados.filter((c) => (c.nome + "" + c.sobrenome + "" + c.email + "" + c.cpf + "" + c.telefone + "" + c.categoria + "" + c.confirmacao + "" + c.mesa_idmesa).toLowerCase().includes(search?.toLowerCase()))
+            convidados?.filter((c) => (c.nome + "" + c.sobrenome + "" + c.email + "" + c.cpf + "" + c.telefone + "" + c.categoria + "" + c.confirmacao + "" + c.mesa_idmesa).toLowerCase().includes(search?.toLowerCase()))
         )
     }, [search])
 
@@ -154,7 +154,7 @@ const Checkins = () => {
                 <div className="m-5">
 
                     <h1>Listagem de convidado</h1>
-                    <p>{convidadosFiltrados.length ?? 0} Convidados listados</p>
+                    <p>{convidadosFiltrados?.length ?? 0} Convidados listados</p>
                     <p>Clique na linha da tabela para gerenciar os convidados</p>
                     <p>Confirme o check-in de um convidado </p>
 

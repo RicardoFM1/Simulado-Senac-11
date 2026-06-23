@@ -31,6 +31,11 @@ const UsuarioModal = ({ dados, show, handleClose, submit, handleDeletar }) => {
 
         setFormData((prev) => ({ ...prev, [name]: value }))
     }
+
+    const handleMaskAccept = (field, value) => {
+        setFormData((prev) => ({ ...prev, [field]: value }))
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -94,13 +99,12 @@ const UsuarioModal = ({ dados, show, handleClose, submit, handleDeletar }) => {
                         <Form.Group>
                             <Form.Label>Cpf</Form.Label>
                             <Form.Control
-
                                 as={IMaskInput}
                                 mask="000.000.000-00"
                                 placeholder="Inclua o cpf do usuário"
                                 value={formData.cpf}
                                 name="cpf"
-                                onChange={handleChange}
+                                onAccept={(value) => handleMaskAccept('cpf', value)}
                                 required={!editando}
                             />
                         </Form.Group>

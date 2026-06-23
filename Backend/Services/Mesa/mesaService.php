@@ -45,7 +45,7 @@ class MesaService
 
     public function listarMesas()
     {
-        $query = $this->db->query('SELECT * FROM mesa ORDER BY id_mesa DESC');
+        $query = $this->db->query('SELECT mesa.id_mesa, mesa.capacidade, COUNT(convidado.id_convidado) as quantidade_convidado FROM mesa LEFT JOIN convidado ON convidado.mesa_idmesa = mesa.id_mesa GROUP BY mesa.id_mesa ORDER BY id_mesa DESC');
 
         $query->execute();
 

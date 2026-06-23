@@ -96,6 +96,30 @@ class CheckinService
 
             $dataFormatada = date('Y-m-d H:i:s');
 
+            $buscarConvidado = $this->db->prepare('SELECT * FROM convidado WHERE id_convidado = :id_convidado');
+            $buscarConvidado->execute([
+                ':id_convidado' => $checkinDados['convidado_idconvidado']
+            ]);
+
+            $convidado = $buscarConvidado->fetch();
+
+            if(empty($convidado)){
+                throw new Exception('Convidado não encontrado', 404);
+            }
+        
+            $mesas = new MesaService()->listarMesas();
+
+            echo json_encode($mesas['dados']);
+
+            if($convidado['mesa_idmesa'] === $mesas['dados']['id_mesa'] && $mesas['dados']['quantidade_convidado'] >= $mesas['dados']['capacidade']){
+                throw new Exception('Mesa lotada', 409);
+            }
+           
+
+            
+
+     
+
             $criar = $this->db->prepare('INSERT INTO checkin (usuario_idusuario, convidado_idconvidado, data_e_hora, status)
             VALUES (:usuario_idusuario, :convidado_idconvidado, :data_e_hora, :status)');
 
@@ -129,7 +153,7 @@ class CheckinService
             if (str_contains($e->getMessage(), 'fk_checkin_convidado')) {
                 throw new Exception('Convidado referenciado não encontrado', 404);
             }
-            throw new Exception('Erro ao tentar confirmar checkin', 500);
+            throw new Exception('Erro ao tentar confirmar checkin' . $e->getMessage(), 500);
         }
     }
 

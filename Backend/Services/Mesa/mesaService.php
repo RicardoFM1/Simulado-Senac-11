@@ -42,6 +42,35 @@ class MesaService
         ];
     }
 
+    public function buscarMesaPorReferenciaConvidado($idMesa)
+    {
+
+        if (empty($idMesa)) {
+            throw new Exception('Dados inválidos', 400);
+        }
+
+        $buscar = $this->db->prepare('SELECT mesa.id_mesa, mesa.capacidade, COUNT(convidado.id_convidado) as quantidade_convidado FROM mesa LEFT JOIN convidado ON convidado.mesa_idmesa = mesa.id_mesa WHERE id_mesa = :id_mesa GROUP BY mesa.id_mesa ORDER BY id_mesa DESC');
+
+        $buscar->execute([
+            ':id_mesa' => $idMesa
+        ]);
+
+        $mesa = $buscar->fetch();
+
+        if (empty($mesa)) {
+            return [
+                'sucesso' => false,
+                'mensagem' => 'Mesa não encontrada',
+                'codigo' => '404'
+            ];
+        }
+
+        return [
+            'sucesso' => true,
+            'dados' => $mesa
+        ];
+    }
+
 
     public function listarMesas()
     {

@@ -13,10 +13,8 @@ class MesaService
         $this->db = db();
     }
 
-    public function buscarMesaPorId($idMesa)
-    {
-
-        if (empty($idMesa)) {
+    public function buscarMesaPorId($idMesa){
+        if(empty($idMesa)){
             throw new Exception('Dados inválidos', 400);
         }
 
@@ -28,11 +26,11 @@ class MesaService
 
         $mesa = $buscar->fetch();
 
-        if (empty($mesa)) {
+        if(empty($mesa)){
             return [
                 'sucesso' => false,
                 'mensagem' => 'Mesa não encontrada',
-                'codigo' => '404'
+                'codigo' => 404
             ];
         }
 
@@ -42,14 +40,12 @@ class MesaService
         ];
     }
 
-    public function buscarMesaPorReferenciaConvidado($idMesa)
-    {
-
-        if (empty($idMesa)) {
+    public function buscarMesaPorReferenciaConvidado($idMesa){
+        if(empty($idMesa)){
             throw new Exception('Dados inválidos', 400);
         }
 
-        $buscar = $this->db->prepare('SELECT mesa.id_mesa, mesa.capacidade, COUNT(convidado.id_convidado) as quantidade_convidado FROM mesa LEFT JOIN convidado ON convidado.mesa_idmesa = mesa.id_mesa WHERE id_mesa = :id_mesa GROUP BY mesa.id_mesa ORDER BY id_mesa DESC');
+        $buscar = $this->db->prepare('SELECT mesa.numero, mesa.capacidade, COUNT(convidado.id_convidado) as quantidade_convidado FROM mesa LEFT JOIN convidado ON convidado.mesa_idmesa = mesa.id_mesa WHERE id_mesa = :id_mesa GROUP BY id_mesa ORDER BY id_mesa DESC');
 
         $buscar->execute([
             ':id_mesa' => $idMesa
@@ -57,11 +53,11 @@ class MesaService
 
         $mesa = $buscar->fetch();
 
-        if (empty($mesa)) {
+        if(empty($mesa)){
             return [
                 'sucesso' => false,
                 'mensagem' => 'Mesa não encontrada',
-                'codigo' => '404'
+                'codigo' => 404
             ];
         }
 
@@ -71,43 +67,19 @@ class MesaService
         ];
     }
 
-
-    public function listarMesas()
-    {
-        $query = $this->db->query('SELECT mesa.id_mesa, mesa.capacidade, COUNT(convidado.id_convidado) as quantidade_convidado FROM mesa LEFT JOIN convidado ON convidado.mesa_idmesa = mesa.id_mesa GROUP BY mesa.id_mesa ORDER BY id_mesa DESC');
+    public function listarMesas (){
+        $query = $this->db->prepare('SELECT mesa.numero, mesa.capacidade, COUNT(convidado.id_convidado) as quantidade_convidado LEFT JOIN convidado ON convidado.mesa_idmesa = mesa.id_mesa GROUP BY id_mesa ORDER BY DESC');
 
         $query->execute();
 
         $mesas = $query->fetchAll();
+        
 
         return [
             'sucesso' => true,
             'dados' => $mesas
         ];
-    }
 
-
-    public function criarMesa($mesaDados)
-    {
-        try {
-
-
-            $criar = $this->db->prepare('INSERT INTO mesa (capacidade)
-            VALUES (:capacidade)');
-
-            $criar->execute([
-                ':capacidade' => $mesaDados['capacidade']
-            ]);
-
-            return [
-                'sucesso' => true,
-                'mensagem' => 'Mesa criada com sucesso'
-            ];
-        } catch (PDOException $e) {
-
-
-            throw new Exception('Erro ao tentar criar mesa', 500);
-        }
     }
 
 

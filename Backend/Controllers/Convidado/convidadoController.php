@@ -57,11 +57,43 @@ class ConvidadoController
         }
     }
 
+    public function apenasAdmin()
+    {
+        $jwt = Middleware::validarMiddleware();
+
+        if ($jwt->dados->cargo_usuario !== 'administrador') {
+            http_response_code(403);
+            echo json_encode([
+                'sucesso' => false,
+                'mensagem' => 'Usuário sem permissão'
+            ]);
+            exit;
+        }
+    }
+
+
+    public function buscarConvidadoPorId(){
+        try{
+            $this->apenasAdmin();
+http_response_code(200);
+$id = $_GET['id_convidado'];
+echo json_encode($this->convidadoService->buscarConvidadoPorId($id));
+exit;
+        }catch(Exception $e){
+           http_response_code($e->getCode());
+            echo json_encode([
+                'sucesso' => false,
+                'mensagem' => $e->getMessage()
+            ]);
+            exit; 
+        }
+    }
 
 
     public function listarConvidados()
     {
-        Middleware::validarMiddleware();
+            $this->apenasAdmin();
+        
         http_response_code(200);
         echo json_encode($this->convidadoService->listarConvidados());
         exit;
@@ -71,7 +103,8 @@ class ConvidadoController
     {
         try {
 
-            Middleware::validarMiddleware();
+            $this->apenasAdmin();
+            
 
             $dados = json_decode(file_get_contents('php://input'), true);
 
@@ -94,6 +127,8 @@ class ConvidadoController
     public function atualizarConvidado()
     {
         try {
+            $this->apenasAdmin();
+
             $jwt = Middleware::validarMiddleware();
 
             $dados = json_decode(file_get_contents('php://input'), true);
@@ -115,7 +150,8 @@ class ConvidadoController
     public function deletarConvidado()
     {
         try {
-            Middleware::validarMiddleware();
+            $this->apenasAdmin();
+            
 
 
             $email = $_GET['email_convidado'];

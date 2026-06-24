@@ -45,115 +45,112 @@ class CheckinService
 
     public function listarCheckins()
     {
-        $query = $this->db->query('SELECT c.id_checkin, c.data_e_hora, c.status, co.id_convidado, 
-        co.nome as nome_convidado, co.sobrenome as sobrenome_convidado, co.cpf as cpf_convidado,
-        co.confirmacao as confirmacao_convidado, u.nome as nome_usuario, u.cpf as cpf_usuario
-        FROM convidado co LEFT JOIN checkin c ON c.convidado_idconvidado = co.id_convidado
-        LEFT JOIN usuario u ON c.usuario_idusuario = u.id_usuario WHERE co.confirmacao IN ("pendente", "confirmado") ORDER BY co.id_convidado DESC ');
+        $query = $this->db->prepare('SELECT c.id_checkin, c.data_e_hora,
+        co.id_convidado, co.nome as nome_convidado, co.sobrenome as sobrenome_convidado, 
+        co.cpf as cpf_convidado, co.confirmacao as confirmacao_convidado, u.nome as nome_usuario,
+        u.cpf as cpf_usuario
+         FROM convidado co INNER JOIN checkin c ON c.convidado_idconvidado = co.id_convidado INNER JOIN usuario u ON c.usuario_idusuario = u.id_usuario WHERE co.confirmacao IN ("pendente", "confirmado") ORDER BY co.id_convidado DESC');
 
+        
         $query->execute();
         $resultado = [];
 
-        while ($row = $query->fetch()) {
+        while($row = $query->fetch()){
             $dataFormatada = null;
 
-            if (!empty($row['data_e_hora'])) {
-                try {
-                    $data = new DateTime($row['data_e_hora']);
-                    $dataFormatada = $data->format('d-m-Y H:i:s');
-                } catch (Exception $e) {
+            if(!empty($row['data_e_hora'])){
+                try{
+                $data = new DateTime($row['data_e_hora']);
+                $dataFormatada = $data->format('d-m-Y H:i:s');
+                }catch(Exception $e){
                     $dataFormatada = $row['data_e_hora'];
                 }
             }
 
             $resultado[] = [
-                'id_convidado' => $row['id_convidado'],
                 'id_checkin' => $row['id_checkin'],
+                'id_convidado' => $row['id_convidado'],
                 'data_e_hora' => $dataFormatada,
-                'status' => $row['status'],
-                'usuario' => [
-                    'nome' => $row['nome_usuario'],
-                    'cpf' => $row['cpf_usuario']
-                ],
                 'convidado' => [
                     'nome' => $row['nome_convidado'],
                     'sobrenome' => $row['sobrenome_convidado'],
                     'cpf' => $row['cpf_convidado'],
                     'confirmacao' => $row['confirmacao_convidado']
+                ],
+                'usuario' => [
+                    'nome' => $row['nome_usuario'],
+                    'cpf' => $row['cpf_usuario']
                 ]
             ];
-        }
-        return [
-            'sucesso' => true,
-            'dados' => $resultado
-        ];
-    }
 
-
-    public function confirmarCheckin($checkinDados, $jwt)
-    {
-        try {
-
-            $dataFormatada = date('Y-m-d H:i:s');
-
-            $buscarConvidado = $this->db->prepare('SELECT * FROM convidado WHERE id_convidado = :id_convidado');
-            $buscarConvidado->execute([
-                ':id_convidado' => $checkinDados['convidado_idconvidado']
-            ]);
-
-            $convidado = $buscarConvidado->fetch();
-
-            if(empty($convidado)){
-                throw new Exception('Convidado não encontrado', 404);
-            }
-        
-            $mesaService = new MesaService();
-            $mesaConvidado = $mesaService->buscarMesaPorReferenciaConvidado($convidado['mesa_idmesa']);
-
-            if(!$mesaConvidado['sucesso']){
-                throw new Exception('Mesa do convidado não encontrada', 404);
-            }
-
-            $mesaDados = $mesaConvidado['dados'];
-
-            if($mesaDados['quantidade_convidado'] >= $mesaDados['capacidade']){
-                throw new Exception('Mesa lotada', 409);
-            }
-
-            $criar = $this->db->prepare('INSERT INTO checkin (usuario_idusuario, convidado_idconvidado, data_e_hora, status)
-            VALUES (:usuario_idusuario, :convidado_idconvidado, :data_e_hora, :status)');
-
-            $criar->execute([
-                ':usuario_idusuario' => $jwt->dados->id_usuario,
-                ':convidado_idconvidado' => $checkinDados['convidado_idconvidado'],
-                ':data_e_hora' => $dataFormatada,
-                ':status' => 'realizado'
-            ]);
-
-            $atualizarConvidado = $this->db->prepare('UPDATE convidado SET confirmacao = :confirmacao WHERE id_convidado = :id_convidado');
-
-            $atualizarConvidado->execute([
-                ':confirmacao' => 'confirmado',
-                ':id_convidado' => $checkinDados['convidado_idconvidado']
-            ]);
 
             return [
                 'sucesso' => true,
-                'mensagem' => 'Checkin criado com sucesso'
+                'dados' => $resultado
             ];
-        } catch (PDOException $e) {
-            if (str_contains($e->getMessage(), '1452')) {
-                throw new Exception('Usuário referenciado não encontrado', 404);
+        }
+
+    }
+
+    public function confirmarCheckin($checkinDados, $jwt) {
+        try{
+
+        $dataFormatada = date('Y-m-d H:i:s');
+
+        $buscarConvidado = $this->db->prepare('SELECT * FROM convidado WHERE id_convidado = :id_convidado');
+
+        $buscarConvidado->execute([
+            ':id_convidado' => $checkinDados['convidado_idconvidado']
+        ]);
+
+        $convidado = $buscarConvidado->fetch();
+
+        if(empty($convidado)){
+            throw new Exception('Convidado não encontrado', 404);
+        }
+
+        $mesaReferenciada = new MesaService()->buscarMesaPorReferenciaConvidado($convidado['mesa_idmesa']);
+
+        if($mesaReferenciada['sucesso'] !== true){
+        throw new Exception('Mesa do convidado não encontrada', 404);
+        }
+
+        if($mesaReferenciada['dados']['quantidade_convidados'] >= $mesaReferenciada['dados']['capacidade']){
+            throw new Exception('Mesa lotada', 409);
+        }
+
+        $confirmar = $this->db->prepare('INSERT INTO checkin (convidado_idconvidado, usuario_idusuario, data_e_hora)
+        VALUES(:convidado_idconvidado, :usuario_idusuario, :data_e_hora)');
+
+        $confirmar->execute([
+            ':usuario_idusuario' => $jwt->dados->id_usuario,
+            ':convidado_idconvidado' => $checkinDados['convidado_idconvidado'],
+            ':data_e_hora' => $dataFormatada
+        ]);
+
+        $atualizarConfirmacao = $this->db->prepare('UPDATE convidado SET confirmacao = "confirmado" WHERE id_convidado = :id_convidado');
+
+        $atualizarConfirmacao->execute([
+            ':id_convidado' => $checkinDados['convidado_idconvidado']
+        ]);
+
+        return [
+            'sucesso' => true,
+            'mensagem' => 'Checkin confirmado com sucesso'
+        ];
+
+        
+
+        }catch(PDOException $e){
+            if(str_contains($e->getMessage(), '1452')){
+                throw new Exception('Usuário e/ou convidado referenciado não encontrado', 404);
             }
 
-            if (str_contains($e->getMessage(), '1062')) {
+            if(str_contains($e->getMessage(), '1062')){
                 throw new Exception('Checkin já realizado', 409);
             }
 
-            if (str_contains($e->getMessage(), 'fk_checkin_convidado')) {
-                throw new Exception('Convidado referenciado não encontrado', 404);
-            }
-            throw new Exception('Erro ao tentar confirmar checkin' . $e->getMessage(), 500);
+            throw new Exception('Erro ao tentar confirmar checkin', 500);
         }
     }
 
@@ -171,7 +168,7 @@ class CheckinService
             }
 
 
-            $cancelar = $this->db->prepare('DELETE FROM checkin WHERE id_checkin = :id_checkin');
+            $cancelar = $this->db->prepare('UPDATE convidado SET confirmacao = "pendente" WHERE id_checkin = :id_checkin');
 
             $cancelar->execute([
                 ':id_checkin' => $idCheckin
@@ -189,4 +186,6 @@ class CheckinService
             throw new Exception('Erro ao tentar cancelar checkin', 500);
         }
     }
+
+    // reverter checkin é update 
 }

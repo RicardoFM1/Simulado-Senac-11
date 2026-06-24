@@ -43,6 +43,36 @@ class ConvidadoService
         ];
     }
 
+    
+    public function buscarConvidadoPorId($id)
+    {
+
+        if (empty($id)) {
+            throw new Exception('Dados inválidos', 400);
+        }
+
+        $buscar = $this->db->prepare('SELECT * FROM convidado WHERE id_convidado = :id_convidado');
+
+        $buscar->execute([
+            ':id_convidado' => $id
+        ]);
+
+        $convidado = $buscar->fetch();
+
+        if (empty($convidado)) {
+            return [
+                'sucesso' => false,
+                'mensagem' => 'Convidado não encontrado',
+                'codigo' => '404'
+            ];
+        }
+
+        return [
+            'sucesso' => true,
+            'dados' => $convidado
+        ];
+    }
+
     public function buscarConvidadoPorMesaId($idMesa)
     {
 

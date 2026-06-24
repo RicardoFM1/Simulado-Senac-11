@@ -82,8 +82,12 @@ if ($rota === '/mesa') {
 if ($rota === '/convidado') {
     $controller = new ConvidadoController();
 
-    if ($metodo === 'GET') {
+    if ($metodo === 'GET' && empty($_GET['id_convidado'])) {
         $controller->listarConvidados();
+    }
+
+if ($metodo === 'GET' && !empty($_GET['id_convidado'])) {
+        $controller->buscarConvidadoPorId();
     }
 
     if ($metodo === 'POST') {
@@ -98,6 +102,13 @@ if ($rota === '/convidado') {
         $controller->deletarConvidado();
     }
 }
+
+if ($rota === '/convidado/id') {
+    $controller = new ConvidadoController();
+    
+}
+
+
 
 if ($rota === '/checkin') {
     $controller = new CheckinController();
